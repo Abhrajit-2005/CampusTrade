@@ -5,9 +5,191 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url = env("DATABASE_URL")
 }
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum ItemStatus {
+  DRAFT
+  AVAILABLE
+  RESERVED
+  SOLD
+  REMOVED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  CHAT
+  ORDER
+  ITEM
+  SYSTEM
+}
+
+enum ReportReason {
+  SPAM
+  INAPPROPRIATE
+  FAKE_ITEM
+  SCAM
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+model College {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String   @unique
+  city        String
+  state       String
+  country     String
+  isVerified  Boolean  @default(true)
+
+  users       User[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([name])
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+
+  items       Item[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+}
+
+model User {
+  id                  String      @id @default(uuid())
+
+  name                String
+  email               String      @unique
+  password            String
+
+  phone               String?
+  bio                 String?
+  profileImage        String?
+
+  role                Role        @default(USER)
+  status              UserStatus  @default(PENDING_VERIFICATION)
+
+  isEmailVerified     Boolean     @default(false)
+
+  averageRating       Float       @default(0)
+  totalReviews        Int         @default(0)
+
+  collegeId           String
+  college             College     @relation(fields: [collegeId], references: [id])
+
+  items               Item[]
+
+  wishlist            Wishlist[]
+
+  purchases           Order[]     @relation("BuyerOrders")
+  sales               Order[]     @relation("SellerOrders")
+
+  sentMessages        Message[]
+
+  conversationsBought Conversation[] @relation("BuyerConversation")
+  conversationsSold   Conversation[] @relation("SellerConversation")
+
+  reviewsGiven        Review[]    @relation("Reviewer")
+  reviewsReceived     Review[]    @relation("Reviewee")
+
+  notifications       Notification[]
+
+  reports             Report[]
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  deletedAt           DateTime?
+
+  @@index([collegeId])
+}
+
+model Item {
+  id              String          @id @default(uuid())
+
+  title           String
+  description     String
+
+  price           Int
+
+  isNegotiable    Boolean         @default(false)
+
+  condition       ItemCondition
+
+  status          ItemStatus      @default(DRAFT)
+
+  pickupLocation  String
+
+  views           Int             @default(0)
+  wishlistCount   Int             @default(0)
+
+  sellerId        String
+  seller          User            @relation(fields: [sellerId], references: [id])
+
+  categoryId      String
+  category        Category        @relation(fields: [categoryId], references: [id])
+
+  images          ItemImage[]
+
+  wishlist        Wishlist[]
+
+  orders          Order[]
+
+  conversations   Conversation[]
+
+  reports         Report[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([price])
+  @@index([createdAt])
+}
+
