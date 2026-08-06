@@ -193,3 +193,94 @@ model Item {
   @@index([createdAt])
 }
 
+model ItemImage {
+  id            String   @id @default(uuid())
+
+  imageUrl      String
+
+  displayOrder  Int
+
+  isPrimary     Boolean  @default(false)
+
+  itemId        String
+  item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  @@index([itemId])
+}
+
+model Wishlist {
+  id          String   @id @default(uuid())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  itemId      String
+  item        Item     @relation(fields: [itemId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, itemId])
+
+  @@index([userId])
+
+  @@index([itemId])
+}
+
+model Order {
+  id            String        @id @default(uuid())
+
+  price         Int
+
+  itemTitle     String
+
+  status        OrderStatus   @default(PENDING)
+
+  buyerId       String
+  buyer         User          @relation("BuyerOrders", fields: [buyerId], references: [id])
+
+  sellerId      String
+  seller        User          @relation("SellerOrders", fields: [sellerId], references: [id])
+
+  itemId        String
+  item          Item          @relation(fields: [itemId], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  @@index([buyerId])
+
+  @@index([sellerId])
+
+  @@index([itemId])
+}
+
+model Review {
+  id              String      @id @default(uuid())
+
+  rating          Int
+
+  comment         String?
+
+  response        String?
+
+  itemId          String
+  item            Item            @relation(fields: [itemId], references: [id])
+
+  orderId         String          @unique
+  order           Order           @relation(fields: [orderId], references: [id])
+
+  reviewerId      String
+  reviewer        User        @relation("Reviewer", fields: [reviewerId], references: [id])
+
+  revieweeId      String
+  reviewee        User        @relation("Reviewee", fields: [revieweeId], references: [id])
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+}
