@@ -9,7 +9,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -69,122 +69,123 @@ enum ReportStatus {
 }
 
 model College {
-  id          String   @id @default(uuid())
-  name        String
-  domain      String   @unique
-  city        String
-  state       String
-  country     String
-  isVerified  Boolean  @default(true)
+  id         String  @id @default(uuid())
+  name       String
+  domain     String  @unique
+  city       String
+  state      String
+  country    String
+  isVerified Boolean @default(true)
 
-  users       User[]
+  users User[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([name])
 }
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  icon        String?
+  id   String  @id @default(uuid())
+  name String  @unique
+  slug String  @unique
+  icon String?
 
-  items       Item[]
+  items Item[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 }
 
 model User {
-  id                  String      @id @default(uuid())
+  id String @id @default(uuid())
 
-  name                String
-  email               String      @unique
-  password            String
+  name     String
+  email    String @unique
+  password String
 
-  phone               String?
-  bio                 String?
-  profileImage        String?
+  phone        String?
+  bio          String?
+  profileImage String?
 
-  role                Role        @default(USER)
-  status              UserStatus  @default(PENDING_VERIFICATION)
+  role   Role       @default(USER)
+  status UserStatus @default(PENDING_VERIFICATION)
 
-  isEmailVerified     Boolean     @default(false)
+  isEmailVerified Boolean @default(false)
 
-  averageRating       Float       @default(0)
-  totalReviews        Int         @default(0)
+  averageRating Float @default(0)
+  totalReviews  Int   @default(0)
 
-  collegeId           String
-  college             College     @relation(fields: [collegeId], references: [id])
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
 
-  items               Item[]
+  items Item[]
 
-  wishlist            Wishlist[]
+  wishlist Wishlist[]
 
-  purchases           Order[]     @relation("BuyerOrders")
-  sales               Order[]     @relation("SellerOrders")
+  purchases Order[] @relation("BuyerOrders")
+  sales     Order[] @relation("SellerOrders")
 
-  sentMessages        Message[]
+  sentMessages Message[]
 
-  conversationsBought Conversation[] @relation("BuyerConversation")
-  conversationsSold   Conversation[] @relation("SellerConversation")
+  buyerConversations  Conversation[] @relation("BuyerConversation")
+  sellerConversations Conversation[] @relation("SellerConversation")
 
-  reviewsGiven        Review[]    @relation("Reviewer")
-  reviewsReceived     Review[]    @relation("Reviewee")
+  reviewsGiven    Review[] @relation("Reviewer")
+  reviewsReceived Review[] @relation("Reviewee")
 
-  notifications       Notification[]
+  notifications Notification[]
 
-  reports             Report[]
+  reports Report[]
 
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  deletedAt           DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([collegeId])
 }
 
 model Item {
-  id              String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  title           String
-  description     String
+  title       String
+  description String
 
-  price           Int
+  price Int
 
-  isNegotiable    Boolean         @default(false)
+  isNegotiable Boolean @default(false)
 
-  condition       ItemCondition
+  condition ItemCondition
 
-  status          ItemStatus      @default(DRAFT)
+  status ItemStatus @default(DRAFT)
 
-  pickupLocation  String
+  pickupLocation String
 
-  views           Int             @default(0)
-  wishlistCount   Int             @default(0)
+  views         Int @default(0)
+  wishlistCount Int @default(0)
 
-  sellerId        String
-  seller          User            @relation(fields: [sellerId], references: [id])
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
 
-  categoryId      String
-  category        Category        @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  images          ItemImage[]
+  images ItemImage[]
 
-  wishlist        Wishlist[]
+  wishlist Wishlist[]
 
-  orders          Order[]
+  orders Order[]
 
-  conversations   Conversation[]
+  conversations Conversation[]
 
-  reports         Report[]
+  reports Report[]
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  deletedAt       DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  reviews   Review[]
 
   @@index([sellerId])
   @@index([categoryId])
@@ -194,93 +195,177 @@ model Item {
 }
 
 model ItemImage {
-  id            String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  imageUrl      String
+  imageUrl String
 
-  displayOrder  Int
+  displayOrder Int
 
-  isPrimary     Boolean  @default(false)
+  isPrimary Boolean @default(false)
 
-  itemId        String
-  item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([itemId])
 }
 
 model Wishlist {
-  id          String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  itemId      String
-  item        Item     @relation(fields: [itemId], references: [id])
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([userId, itemId])
-
   @@index([userId])
-
   @@index([itemId])
 }
 
 model Order {
-  id            String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  price         Int
+  price Int
 
-  itemTitle     String
+  itemTitle String
 
-  status        OrderStatus   @default(PENDING)
+  status OrderStatus @default(PENDING)
 
-  buyerId       String
-  buyer         User          @relation("BuyerOrders", fields: [buyerId], references: [id])
+  buyerId String
+  buyer   User   @relation("BuyerOrders", fields: [buyerId], references: [id])
 
-  sellerId      String
-  seller        User          @relation("SellerOrders", fields: [sellerId], references: [id])
+  sellerId String
+  seller   User   @relation("SellerOrders", fields: [sellerId], references: [id])
 
-  itemId        String
-  item          Item          @relation(fields: [itemId], references: [id])
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  deletedAt     DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  review    Review?
 
   @@index([buyerId])
-
   @@index([sellerId])
-
   @@index([itemId])
 }
 
 model Review {
-  id              String      @id @default(uuid())
+  id String @id @default(uuid())
 
-  rating          Int
+  rating Int
 
-  comment         String?
+  comment String?
 
-  response        String?
+  response String?
 
-  itemId          String
-  item            Item            @relation(fields: [itemId], references: [id])
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
 
-  orderId         String          @unique
-  order           Order           @relation(fields: [orderId], references: [id])
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
 
-  reviewerId      String
-  reviewer        User        @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewerId String
+  reviewer   User   @relation("Reviewer", fields: [reviewerId], references: [id])
 
-  revieweeId      String
-  reviewee        User        @relation("Reviewee", fields: [revieweeId], references: [id])
+  revieweeId String
+  reviewee   User   @relation("Reviewee", fields: [revieweeId], references: [id])
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  deletedAt       DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Conversation {
+  id String @id @default(uuid())
+
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  buyerId String
+  buyer   User   @relation("BuyerConversation", fields: [buyerId], references: [id])
+
+  sellerId String
+  seller   User   @relation("SellerConversation", fields: [sellerId], references: [id])
+
+  messages Message[]
+
+  lastMessageAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([itemId, buyerId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([itemId])
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
+  content String
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model Notification {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  title String
+
+  message String
+
+  link String?
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Report {
+  id String @id @default(uuid())
+
+  reporterId String
+  reporter   User   @relation(fields: [reporterId], references: [id])
+
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  reason ReportReason
+
+  description String?
+
+  status ReportStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
