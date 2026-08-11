@@ -3,8 +3,10 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import healthRouter from "./routes/health.routes.js";
-import { errorMiddleware } from "./middlewares/error.middleware.js";
+import healthRouter from "./routes/health.routes";
+import { errorMiddleware } from "./middlewares/error.middleware";
+import authRouter from "./routes/auth.routes";
+import collegeAdminRouter from "./routes/college-admin.routes.js";
 
 const app = express();
 
@@ -26,6 +28,10 @@ if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
 app.use("/api/v1/health", healthRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/college-admin", collegeAdminRouter);
+
+
 app.use((_req, res) => {
   res.status(404).json({
     success: false,

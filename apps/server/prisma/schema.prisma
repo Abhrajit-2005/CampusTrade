@@ -14,12 +14,15 @@ datasource db {
 
 enum Role {
   USER
-  ADMIN
+  COLLEGE_ADMIN
+  PLATFORM_ADMIN
 }
 
 enum UserStatus {
   PENDING_VERIFICATION
+  PENDING_COLLEGE_APPROVAL
   ACTIVE
+  REJECTED
   SUSPENDED
   BANNED
 }
@@ -140,11 +143,27 @@ model User {
 
   reports Report[]
 
+  emailVerificationTokens EmailVerificationToken[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@index([collegeId])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Item {
