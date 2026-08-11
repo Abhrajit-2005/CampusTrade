@@ -1,13 +1,18 @@
-import express from "express";
+import app from "./app.js";
+import { env } from "./config/env.js";
 
-const app = express();
-
-app.get("/", (_, res) => {
-  res.send("College Trading API Running...");
+const server = app.listen(env.PORT, () => {
+  console.log(`Server running on port ${env.PORT}`);
 });
 
-const PORT = process.env.PORT || 5000;
+const shutdown = (signal: string) => {
+  console.log(`${signal} received. Shutting down server...`);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  server.close(() => {
+    console.log("Server closed.");
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
