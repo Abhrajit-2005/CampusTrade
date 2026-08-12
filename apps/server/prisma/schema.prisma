@@ -79,6 +79,7 @@ model College {
   state      String
   country    String
   isVerified Boolean @default(true)
+  adminInvitations AdminInvitation[]
 
   users User[]
 
@@ -121,8 +122,8 @@ model User {
   averageRating Float @default(0)
   totalReviews  Int   @default(0)
 
-  collegeId String
-  college   College @relation(fields: [collegeId], references: [id])
+  collegeId String?
+  college   College? @relation(fields: [collegeId], references: [id])
 
   items Item[]
 
@@ -164,6 +165,24 @@ model EmailVerificationToken {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model AdminInvitation {
+  id        String   @id @default(uuid())
+  email     String
+  name      String
+  tokenHash String   @unique
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([collegeId])
+  @@index([email])
 }
 
 model Item {

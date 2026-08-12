@@ -95,4 +95,23 @@ export const userRepository = {
       data,
     });
   },
+
+  createCollegeAdmin: async (data: {
+    name: string;
+    email: string;
+    password: string;
+    collegeId: string;
+  }) => {
+    return prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        collegeId: data.collegeId,
+        role: "COLLEGE_ADMIN",
+        status: "ACTIVE",
+        isEmailVerified: true,
+      },
+    });
+  },
 };

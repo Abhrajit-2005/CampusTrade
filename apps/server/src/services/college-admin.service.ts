@@ -18,11 +18,13 @@ export const collegeAdminService = {
         }
 
         if (admin.role !== "COLLEGE_ADMIN") {
-            throw new AppError(
-                "You are not a college administrator",
-                403,
-                "FORBIDDEN"
-            );
+            if (!admin.collegeId) {
+                throw new AppError(
+                    "College administrator is not associated with a college",
+                    403,
+                    "COLLEGE_NOT_ASSIGNED"
+                );
+            }
         }
 
         const target =
@@ -90,11 +92,13 @@ export const collegeAdminService = {
         }
 
         if (admin.role !== "COLLEGE_ADMIN") {
-            throw new AppError(
-                "You are not a college administrator",
-                403,
-                "FORBIDDEN"
-            );
+            if (!admin.collegeId) {
+                throw new AppError(
+                    "College administrator is not associated with a college",
+                    403,
+                    "COLLEGE_NOT_ASSIGNED"
+                );
+            }
         }
 
         const target =
@@ -163,6 +167,14 @@ export const collegeAdminService = {
                 "You are not a college administrator",
                 403,
                 "FORBIDDEN"
+            );
+        }
+
+        if (!admin.collegeId) {
+            throw new AppError(
+                "College administrator is not associated with a college",
+                403,
+                "COLLEGE_NOT_ASSIGNED"
             );
         }
 

@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -27,6 +28,7 @@ const colleges = [
 ];
 
 async function main() {
+  // Seed colleges
   for (const college of colleges) {
     await prisma.college.upsert({
       where: {
@@ -43,11 +45,48 @@ async function main() {
   }
 
   console.log("College seed completed successfully.");
+
+  // Seed platform admin
+  const adminEmail = process.env.PLATFORM_ADMIN_EMAIL;
+  const adminPassword = process.env.PLATFORM_ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      "PLATFORM_ADMIN_EMAIL and PLATFORM_ADMIN_PASSWORD must be set"
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(adminPassword, 12);
+
+  await prisma.user.upsert({
+    where: {
+      email: adminEmail,
+    },
+    update: {
+      name: "Platform Administrator",
+      password: hashedPassword,
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      isEmailVerified: true,
+      collegeId: null,
+    },
+    create: {
+      name: "Platform Administrator",
+      email: adminEmail,
+      password: hashedPassword,
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      isEmailVerified: true,
+      collegeId: null,
+    },
+  });
+
+  console.log("Platform admin seed completed successfully.");
 }
 
 main()
   .catch((error) => {
-    console.error("College seed failed:", error);
+    console.error("Seed failed:", error);
   })
   .finally(async () => {
     await prisma.$disconnect();

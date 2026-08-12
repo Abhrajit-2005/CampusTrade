@@ -3,7 +3,7 @@ import { env } from "../config/env";
 
 export interface AccessTokenPayload {
   sub: string;
-  role: string;
+  role: "USER" | "COLLEGE_ADMIN" | "PLATFORM_ADMIN";
 }
 
 export interface RefreshTokenPayload {

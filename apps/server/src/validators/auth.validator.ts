@@ -28,3 +28,29 @@ export const registerSchema = z.object({
       .max(128, "Password cannot exceed 128 characters"),
   }),
 });
+
+export const loginSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .trim()
+      .email("Invalid email address")
+      .transform((value) => value.toLowerCase()),
+
+    password: z
+      .string()
+      .min(1, "Password is required"),
+  }),
+});
+
+export const acceptAdminInvitationSchema = z.object({
+  body: z.object({
+    token: z
+      .string()
+      .min(1, "Invitation token is required"),
+
+    password: z
+      .string()
+      .min(8, "Password must contain at least 8 characters"),
+  }),
+});

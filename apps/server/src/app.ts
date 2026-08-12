@@ -7,6 +7,7 @@ import healthRouter from "./routes/health.routes";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import authRouter from "./routes/auth.routes";
 import collegeAdminRouter from "./routes/college-admin.routes.js";
+import platformAdminRoutes from "./routes/platform-admin.routes.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ if (process.env.NODE_ENV !== "test") {
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/college-admin", collegeAdminRouter);
+app.use("/api/v1/platform-admin", platformAdminRoutes);
 
 
 app.use((_req, res) => {

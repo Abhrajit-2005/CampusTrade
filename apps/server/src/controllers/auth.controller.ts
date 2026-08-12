@@ -40,3 +40,42 @@ export const verifyEmail = async (
     next(error);
   }
 };
+
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const result = await authService.login(req.body);
+
+    return sendSuccess(
+      res,
+      result,
+      "Login successful"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const acceptAdminInvitation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const result =
+      await authService.acceptAdminInvitation(
+        req.body
+      );
+
+    return sendSuccess(
+      res,
+      result,
+      "College administrator account created successfully"
+    );
+  } catch (error) {
+    next(error);
+  }
+};

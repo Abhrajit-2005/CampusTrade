@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { register, verifyEmail } from "../controllers/auth.controller.js";
+import { login, register, verifyEmail, acceptAdminInvitation } from "../controllers/auth.controller.js";
 import { validate } from "../middlewares/validation.middleware.js";
-import { registerSchema, verifyEmailSchema } from "../validators/auth.validator.js";
+import { loginSchema, registerSchema, verifyEmailSchema, acceptAdminInvitationSchema } from "../validators/auth.validator.js";
 
 const router = Router();
 
@@ -12,9 +12,21 @@ router.post(
 );
 
 router.post(
+  "/login",
+  validate(loginSchema),
+  login
+);
+
+router.post(
   "/verify-email",
   validate(verifyEmailSchema),
   verifyEmail
+);
+
+router.post(
+  "/admin-invitations/accept",
+  validate(acceptAdminInvitationSchema),
+  acceptAdminInvitation
 );
 
 export default router;
