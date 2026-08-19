@@ -12,6 +12,9 @@ import {
 import {
   hashInvitationToken,
 } from "../utils/tokens.js";
+import {
+  refreshSessionService,
+} from "./refresh-session.service.js";
 
 interface RegisterInput {
   name: string;
@@ -95,6 +98,8 @@ export const authService = {
       );
     }
 
+    const refreshSession = await refreshSessionService.create(user.id);
+
     const accessToken = generateAccessToken({
       sub: user.id,
       role: user.role,
@@ -110,8 +115,10 @@ export const authService = {
         collegeId: user.collegeId,
       },
       accessToken,
+      refreshToken: refreshSession.token
     };
-  }, verifyEmail: async (token: string) => {
+  },
+  verifyEmail: async (token: string) => {
     const tokenHash = hashVerificationToken(token);
 
     const verificationToken =
@@ -315,6 +322,48 @@ export const authService = {
       status: user.status,
       isEmailVerified: user.isEmailVerified,
       collegeId: user.collegeId,
+    };
+  },
+  refreshAccessToken: async (refreshToken: string) => {
+    const result =
+      await refreshSessionService.refresh(
+        refreshToken
+      );
+
+    const user = result.user;
+
+    if (!user.isEmailVerified) {
+      throw new AppError(
+        "Email verification required",
+        403,
+        "EMAIL_NOT_VERIFIED"
+      );
+    }
+
+    if (user.status !== "ACTIVE") {
+      throw new AppError(
+        "Your account is not active",
+        403,
+        "ACCOUNT_NOT_ACTIVE"
+      );
+    }
+
+    const accessToken = generateAccessToken({
+      sub: user.id,
+      role: user.role,
+    });
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        collegeId: user.collegeId,
+      },
+      accessToken,
+      refreshToken: result.refreshToken,
     };
   },
 };

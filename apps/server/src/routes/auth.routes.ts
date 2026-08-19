@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, register, verifyEmail, acceptAdminInvitation } from "../controllers/auth.controller.js";
+import { login, register, verifyEmail, acceptAdminInvitation, refresh } from "../controllers/auth.controller.js";
 import { validate } from "../middlewares/validation.middleware.js";
 import { loginSchema, registerSchema, verifyEmailSchema, acceptAdminInvitationSchema } from "../validators/auth.validator.js";
 
@@ -27,6 +27,11 @@ router.post(
   "/admin-invitations/accept",
   validate(acceptAdminInvitationSchema),
   acceptAdminInvitation
+);
+
+router.post(
+  "/refresh",
+  refresh
 );
 
 export default router;

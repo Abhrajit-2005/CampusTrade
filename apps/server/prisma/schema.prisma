@@ -118,6 +118,7 @@ model User {
   status UserStatus @default(PENDING_VERIFICATION)
 
   isEmailVerified Boolean @default(false)
+  refreshSessions RefreshSession[]
 
   averageRating Float @default(0)
   totalReviews  Int   @default(0)
@@ -406,4 +407,21 @@ model Report {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model RefreshSession {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
 }
