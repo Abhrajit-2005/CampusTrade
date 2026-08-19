@@ -1,5 +1,6 @@
 import { collegeRepository } from "../repositories/college.repository.js";
 import { userRepository } from "../repositories/user.repository.js";
+import { adminInvitationRepository } from "../repositories/admin-invitation.repository.js";
 import { AppError } from "../utils/AppError.js";
 import {
   generateInvitationToken,
@@ -77,6 +78,21 @@ export const platformAdminService = {
       );
     }
 
+    const pendingInvitation =
+      await adminInvitationRepository
+        .findPendingByEmailAndCollege(
+          email,
+          college.id
+        );
+
+    if (pendingInvitation) {
+      throw new AppError(
+        "A pending invitation already exists for this email",
+        409,
+        "INVITATION_ALREADY_PENDING"
+      );
+    }
+
     // Generate invitation token
     const { token, tokenHash } =
       generateInvitationToken();
@@ -108,5 +124,8 @@ export const platformAdminService = {
       collegeId: invitation.collegeId,
       expiresAt: invitation.expiresAt,
     };
+  },
+  cleanupExpiredInvitations: async () => {
+    return adminInvitationRepository.deleteExpired();
   },
 };

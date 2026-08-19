@@ -22,4 +22,30 @@ export const adminInvitationRepository = {
       },
     });
   },
+
+  findPendingByEmailAndCollege: async (
+    email: string,
+    collegeId: string
+  ) => {
+    return prisma.adminInvitation.findFirst({
+      where: {
+        email,
+        collegeId,
+        acceptedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+  },
+  deleteExpired: async () => {
+    return prisma.adminInvitation.deleteMany({
+      where: {
+        acceptedAt: null,
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+  },
 };
