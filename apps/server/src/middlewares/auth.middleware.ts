@@ -17,7 +17,7 @@ export const authenticate = (
   try {
     const authorization = req.headers.authorization;
 
-    if (!authorization?.startsWith("Bearer ")) {
+    if (!authorization) {
       throw new AppError(
         "Authentication required",
         401,
@@ -25,9 +25,29 @@ export const authenticate = (
       );
     }
 
-    const token = authorization.substring(7);
+    const [scheme, token] = authorization.split(" ");
 
-    const payload = verifyAccessToken(token);
+    if (
+      scheme !== "Bearer" ||
+      !token ||
+      token.trim().length === 0
+    ) {
+      throw new AppError(
+        "Invalid authorization header",
+        401,
+        "INVALID_AUTHORIZATION_HEADER"
+      );
+    }
+
+    const payload = verifyAccessToken(token.trim());
+
+    if (!payload.sub || !payload.role) {
+      throw new AppError(
+        "Invalid access token",
+        401,
+        "INVALID_ACCESS_TOKEN"
+      );
+    }
 
     req.user = payload;
 
