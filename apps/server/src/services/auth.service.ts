@@ -366,4 +366,7 @@ export const authService = {
       refreshToken: result.refreshToken,
     };
   },
+  logout: async (refreshToken: string) => {
+    await refreshSessionService.revoke(refreshToken);
+  },
 };

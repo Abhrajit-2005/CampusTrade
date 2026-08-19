@@ -131,3 +131,30 @@ export const refresh = async (
     next(error);
   }
 };
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (refreshToken) {
+      await authService.logout(refreshToken);
+    }
+
+    res.clearCookie(
+      "refreshToken",
+      refreshCookieOptions
+    );
+
+    return sendSuccess(
+      res,
+      null,
+      "Logout successful"
+    );
+  } catch (error) {
+    next(error);
+  }
+};

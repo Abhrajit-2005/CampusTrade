@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, register, verifyEmail, acceptAdminInvitation, refresh } from "../controllers/auth.controller.js";
+import { login, register, verifyEmail, acceptAdminInvitation, refresh, logout } from "../controllers/auth.controller.js";
 import { validate } from "../middlewares/validation.middleware.js";
 import { loginSchema, registerSchema, verifyEmailSchema, acceptAdminInvitationSchema } from "../validators/auth.validator.js";
 
@@ -32,6 +32,11 @@ router.post(
 router.post(
   "/refresh",
   refresh
+);
+
+router.post(
+  "/logout",
+  logout
 );
 
 export default router;
