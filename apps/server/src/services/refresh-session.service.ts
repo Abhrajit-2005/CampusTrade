@@ -86,17 +86,32 @@ export const refreshSessionService = {
       );
     }
 
-    // Revoke the old session before creating a new one.
-    await refreshSessionRepository.revoke(session.id);
+    const newToken = generateRefreshToken();
 
-    const newSession =
-      await refreshSessionService.create(
-        session.user.id
-      );
+    const newTokenHash =
+      hashRefreshToken(newToken);
+
+    const expiresAt = new Date(
+      Date.now() +
+      REFRESH_TOKEN_TTL_DAYS *
+      24 *
+      60 *
+      60 *
+      1000
+    );
+
+    await refreshSessionRepository.rotate(
+      session.id,
+      {
+        tokenHash: newTokenHash,
+        userId: session.user.id,
+        expiresAt,
+      }
+    );
 
     return {
       user: session.user,
-      refreshToken: newSession.token,
+      refreshToken: newToken,
     };
   },
 };

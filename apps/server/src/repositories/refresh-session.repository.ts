@@ -44,4 +44,28 @@ export const refreshSessionRepository = {
       },
     });
   },
+
+  rotate: async (
+    oldSessionId: string,
+    newSession: {
+      tokenHash: string;
+      userId: string;
+      expiresAt: Date;
+    }
+  ) => {
+    return prisma.$transaction(async (tx) => {
+      await tx.refreshSession.update({
+        where: {
+          id: oldSessionId,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
+
+      return tx.refreshSession.create({
+        data: newSession,
+      });
+    });
+  },
 };
