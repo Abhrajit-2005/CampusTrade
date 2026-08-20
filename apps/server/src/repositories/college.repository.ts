@@ -13,6 +13,17 @@ export const collegeRepository = {
       },
     });
   },
+  create: async (data: {
+    name: string;
+    domain: string;
+    city: string;
+    state: string;
+    country: string;
+  }) => {
+    return prisma.college.create({
+      data,
+    });
+  },
   createAdminInvitation: async (data: {
     name: string;
     email: string;

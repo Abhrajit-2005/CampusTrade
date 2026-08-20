@@ -5,8 +5,75 @@ import { AppError } from "../utils/AppError.js";
 import {
   generateInvitationToken,
 } from "../utils/tokens.js";
+import { emailService } from "./email.service.js";
 
 export const platformAdminService = {
+  createCollege: async (
+    platformAdminId: string,
+    input: {
+      name: string;
+      domain: string;
+      city: string;
+      state: string;
+      country: string;
+    }
+  ) => {
+    const platformAdmin =
+      await userRepository.findByIdWithCollege(
+        platformAdminId
+      );
+
+    if (!platformAdmin) {
+      throw new AppError(
+        "Platform admin not found",
+        404,
+        "ADMIN_NOT_FOUND"
+      );
+    }
+
+    if (platformAdmin.role !== "PLATFORM_ADMIN") {
+      throw new AppError(
+        "Platform administrator access required",
+        403,
+        "FORBIDDEN"
+      );
+    }
+
+    const domain = input.domain
+      .trim()
+      .toLowerCase();
+
+    const existingCollege =
+      await collegeRepository.findByDomain(domain);
+
+    if (existingCollege) {
+      throw new AppError(
+        "A college with this domain already exists",
+        409,
+        "COLLEGE_DOMAIN_ALREADY_EXISTS"
+      );
+    }
+
+    const college =
+      await collegeRepository.create({
+        name: input.name.trim(),
+        domain,
+        city: input.city.trim(),
+        state: input.state.trim(),
+        country: input.country.trim(),
+      });
+
+    return {
+      id: college.id,
+      name: college.name,
+      domain: college.domain,
+      city: college.city,
+      state: college.state,
+      country: college.country,
+      isVerified: college.isVerified,
+      createdAt: college.createdAt,
+    };
+  },
   createCollegeAdminInvitation: async (
     platformAdminId: string,
     collegeId: string,
@@ -111,19 +178,21 @@ export const platformAdminService = {
         expiresAt,
       });
 
-    // Temporary development logging.
-    // Later this will be replaced by the email service.
-    console.log(
-      `Admin invitation token for ${email}: ${token}`
+    await emailService.sendAdminInvitation(
+      email,
+      input.name.trim(),
+      token
     );
 
-    return {
+    const response = {
       id: invitation.id,
       name: invitation.name,
       email: invitation.email,
       collegeId: invitation.collegeId,
       expiresAt: invitation.expiresAt,
     };
+
+    return response;
   },
   cleanupExpiredInvitations: async () => {
     return adminInvitationRepository.deleteExpired();

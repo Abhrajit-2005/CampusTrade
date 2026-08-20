@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import {
-  createCollegeAdminInvitation,
+  createCollegeAdminInvitation, createCollege
 } from "../controllers/platform-admin.controller.js";
 
 import {
@@ -17,7 +17,7 @@ import {
 } from "../middlewares/validation.middleware.js";
 
 import {
-  createCollegeAdminInvitationSchema,
+  createCollegeAdminInvitationSchema, createCollegeSchema
 } from "../validators/platform-admin.validator.js";
 
 const router = Router();
@@ -28,6 +28,14 @@ router.post(
   authorizeRoles("PLATFORM_ADMIN"),
   validate(createCollegeAdminInvitationSchema),
   createCollegeAdminInvitation
+);
+
+router.post(
+  "/colleges",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN"),
+  validate(createCollegeSchema),
+  createCollege
 );
 
 export default router;

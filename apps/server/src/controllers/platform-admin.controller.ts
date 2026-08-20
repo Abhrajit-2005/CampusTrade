@@ -8,6 +8,28 @@ import { sendSuccess } from "../utils/response.js";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
 import { AppError } from "../utils/AppError.js";
 
+export const createCollege = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const college =
+      await platformAdminService.createCollege(
+        req.user!.sub,
+        req.body
+      );
+
+    return sendSuccess(
+      res,
+      college,
+      "College created successfully"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createCollegeAdminInvitation = async (
   req: AuthenticatedRequest,
   res: Response,
