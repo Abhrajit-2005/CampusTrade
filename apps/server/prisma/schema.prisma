@@ -107,12 +107,14 @@ model User {
   id String @id @default(uuid())
 
   name     String
-  email    String @unique
+  username String?  @unique
+  email    String   @unique
   password String
 
   phone        String?
   bio          String?
   profileImage String?
+  location     String?
 
   role   Role       @default(USER)
   status UserStatus @default(PENDING_VERIFICATION)

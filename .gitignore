@@ -41,3 +41,7 @@ Thumbs.db
 
 # AI tooling
 **/skills-lock.json
+
+# Scripts
+**/scripts/
+**/.scripts/

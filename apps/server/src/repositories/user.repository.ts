@@ -114,4 +114,30 @@ export const userRepository = {
       },
     });
   },
+
+  findByUsername: async (username: string) => {
+    return prisma.user.findUnique({
+      where: { username },
+    });
+  },
+
+  updateProfile: async (
+    id: string,
+    data: {
+      name?: string;
+      username?: string | null;
+      bio?: string | null;
+      phone?: string | null;
+      profileImage?: string | null;
+      location?: string | null;
+    }
+  ) => {
+    return prisma.user.update({
+      where: { id },
+      data,
+      include: {
+        college: true,
+      },
+    });
+  },
 };
