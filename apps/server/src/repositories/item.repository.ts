@@ -101,6 +101,7 @@ export const itemRepository = {
             },
           },
           images: {
+            where: { deletedAt: null },
             select: {
               id: true,
               imageUrl: true,
@@ -144,6 +145,7 @@ export const itemRepository = {
             },
           },
           images: {
+            where: { deletedAt: null },
             select: {
               id: true,
               imageUrl: true,

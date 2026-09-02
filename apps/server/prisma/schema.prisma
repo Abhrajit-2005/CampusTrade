@@ -249,7 +249,8 @@ model Item {
 }
 
 model ItemImage {
-  id String @id @default(uuid())
+  id       String @id @default(uuid())
+  publicId String @unique // [NEW] Cloudinary public ID for deletion
 
   imageUrl String
 

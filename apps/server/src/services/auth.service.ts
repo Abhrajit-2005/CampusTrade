@@ -234,9 +234,9 @@ export const authService = {
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     });
 
-    // console.log(
-    //   `Email verification token for ${user.email}: ${token}`
-    // );
+    console.log(
+      `Email verification token for ${user.email}: ${token}`
+    );
 
     return {
       id: user.id,
