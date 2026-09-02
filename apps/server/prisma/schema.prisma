@@ -39,6 +39,7 @@ enum ItemStatus {
   AVAILABLE
   RESERVED
   SOLD
+  EXPIRED
   REMOVED
 }
 
@@ -79,15 +80,21 @@ model College {
   state      String
   country    String
   isVerified Boolean @default(true)
+
+  latitude  Float?
+  longitude Float?
+
   adminInvitations AdminInvitation[]
 
   users User[]
+  items Item[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@index([name])
+  @@index([latitude, longitude])
 }
 
 model Category {
@@ -210,6 +217,9 @@ model Item {
   sellerId String
   seller   User   @relation(fields: [sellerId], references: [id])
 
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
@@ -229,10 +239,13 @@ model Item {
   reviews   Review[]
 
   @@index([sellerId])
+  @@index([collegeId])
   @@index([categoryId])
   @@index([status])
   @@index([price])
   @@index([createdAt])
+  @@index([collegeId, status])
+  @@index([collegeId, categoryId, status])
 }
 
 model ItemImage {

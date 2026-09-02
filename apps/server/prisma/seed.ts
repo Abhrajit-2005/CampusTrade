@@ -27,6 +27,21 @@ const colleges = [
   },
 ];
 
+const categories = [
+  { name: "Textbooks",           slug: "textbooks",           icon: "📚" },
+  { name: "Electronics",         slug: "electronics",         icon: "💻" },
+  { name: "Furniture",           slug: "furniture",           icon: "🪑" },
+  { name: "Clothing",            slug: "clothing",            icon: "👕" },
+  { name: "Stationery",          slug: "stationery",          icon: "✏️" },
+  { name: "Sports Equipment",    slug: "sports-equipment",    icon: "⚽" },
+  { name: "Musical Instruments", slug: "musical-instruments", icon: "🎸" },
+  { name: "Kitchen & Dining",    slug: "kitchen-dining",      icon: "🍽️" },
+  { name: "Room Essentials",     slug: "room-essentials",     icon: "🛏️" },
+  { name: "Vehicles",            slug: "vehicles",            icon: "🚲" },
+  { name: "Tickets & Vouchers",  slug: "tickets-vouchers",    icon: "🎟️" },
+  { name: "Other",               slug: "other",               icon: "📦" },
+];
+
 async function main() {
   // Seed colleges
   for (const college of colleges) {
@@ -45,6 +60,22 @@ async function main() {
   }
 
   console.log("College seed completed successfully.");
+
+  // Seed categories
+  for (const category of categories) {
+    await prisma.category.upsert({
+      where: {
+        slug: category.slug,
+      },
+      update: {
+        name: category.name,
+        icon: category.icon,
+      },
+      create: category,
+    });
+  }
+
+  console.log("Category seed completed successfully.");
 
   // Seed platform admin
   const adminEmail = process.env.PLATFORM_ADMIN_EMAIL;
