@@ -184,6 +184,8 @@ export const platformAdminService = {
       token
     );
 
+   // console.log(`Admin invitation token for ${email}: ${token}`);
+
     const response = {
       id: invitation.id,
       name: invitation.name,

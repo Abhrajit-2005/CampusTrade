@@ -3,6 +3,7 @@ import { createItem, getItems, publishItem, getItem, updateItem, deleteItem, get
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validation.middleware.js";
 import { createItemSchema, getItemsSchema, publishItemSchema, getItemSchema, updateItemSchema, deleteItemSchema, getMyListingsSchema } from "../validators/item.validator.js";
+import itemImageRoutes from "./item-image.routes.js";
 
 const router = Router();
 
@@ -54,5 +55,7 @@ router.delete(
   validate(deleteItemSchema),
   deleteItem
 );
+
+router.use("/:id/images", itemImageRoutes);
 
 export default router;
