@@ -143,18 +143,24 @@ export const itemService = {
     return itemRepository.updateStatus(itemId, "AVAILABLE");
   },
 
-  getItemById: async (itemId: string) => {
-    const item = await itemRepository.findAvailableById(itemId);
+  getItemById: async (itemId: string, requesterUserId: string) => {
+    const item = await itemRepository.findByIdWithDetails(itemId);
 
     if (!item) {
       throw new AppError("Listing not found or is unavailable", 404, "NOT_FOUND");
     }
 
-    itemRepository.incrementViews(itemId).catch((err) => {
-      console.error(`Failed to increment views for item ${itemId}:`, err);
-    });
+    if (item.status !== "AVAILABLE" && item.sellerId !== requesterUserId) {
+      throw new AppError("Listing not found or is unavailable", 404, "NOT_FOUND");
+    }
 
-    item.views += 1;
+    if (item.sellerId !== requesterUserId) {
+      itemRepository.incrementViews(itemId).catch((err) => {
+        console.error(`Failed to increment views for item ${itemId}:`, err);
+      });
+
+      item.views += 1;
+    }
 
     return item;
   },

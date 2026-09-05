@@ -205,11 +205,10 @@ export const itemRepository = {
     });
   },
 
-  findAvailableById: async (id: string) => {
+  findByIdWithDetails: async (id: string) => {
     return prisma.item.findFirst({
       where: {
         id,
-        status: "AVAILABLE",
         deletedAt: null,
       },
       include: {
