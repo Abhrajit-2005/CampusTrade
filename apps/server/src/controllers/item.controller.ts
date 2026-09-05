@@ -101,7 +101,10 @@ export const getItem = async (
   next: NextFunction
 ) => {
   try {
-    const item = await itemService.getItemById(req.params.id as string);
+    const item = await itemService.getItemById(
+      req.params.id as string,
+      req.user!.sub
+    );
 
     return sendSuccess(
       res,
