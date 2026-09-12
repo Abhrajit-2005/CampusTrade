@@ -362,6 +362,7 @@ model Conversation {
   @@index([buyerId])
   @@index([sellerId])
   @@index([itemId])
+  @@index([lastMessageAt])
 }
 
 model Message {
@@ -383,6 +384,7 @@ model Message {
 
   @@index([conversationId])
   @@index([senderId])
+  @@index([conversationId, createdAt])
 }
 
 model Notification {
