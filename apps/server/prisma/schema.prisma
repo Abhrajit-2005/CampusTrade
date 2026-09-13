@@ -50,6 +50,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
 enum NotificationType {
   CHAT
   ORDER
@@ -306,10 +313,29 @@ model Order {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
   review    Review?
+  payments  Payment[]
 
   @@index([buyerId])
   @@index([sellerId])
   @@index([itemId])
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id])
+  provider          String
+  providerPaymentId String        @unique
+  amount            Int
+  currency          String
+  status            PaymentStatus @default(PENDING)
+  failureReason     String?
+  paidAt            DateTime?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([orderId])
 }
 
 model Review {

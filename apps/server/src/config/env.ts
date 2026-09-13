@@ -21,6 +21,10 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRES_IN: z.string().default("15m"),
 
   REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
+
+  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
+  PAYMENT_CURRENCY: z.string().default("inr"),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

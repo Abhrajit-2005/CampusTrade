@@ -13,6 +13,9 @@ import itemRouter from "./routes/item.routes.js";
 import categoryRouter from "./routes/category.routes.js";
 import conversationRouter from "./routes/conversation.routes.js";
 import wishlistRouter from "./routes/wishlist.routes.js";
+import orderRouter from "./routes/order.routes.js";
+import paymentRouter from "./routes/payment.routes.js";
+import webhookRouter from "./routes/webhook.routes.js";
 
 const app = express();
 
@@ -24,6 +27,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use("/api/v1/webhooks", webhookRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -42,6 +47,8 @@ app.use("/api/v1/items", itemRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/conversations", conversationRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/payments", paymentRouter);
 
 
 app.use((_req, res) => {
