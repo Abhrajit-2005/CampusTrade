@@ -85,4 +85,43 @@ export const paymentService = {
       status: "PENDING",
     };
   },
+
+  refundPayment: async (payment: { id: string, providerPaymentId: string, amount: number }) => {
+    try {
+      const existingRefunds = await stripe.refunds.list({ payment_intent: payment.providerPaymentId });
+      const fullRefund = existingRefunds.data.find(
+        (r) => r.amount === payment.amount && (r.status === "succeeded" || r.status === "pending")
+      );
+      
+      if (fullRefund) {
+        return fullRefund;
+      }
+    } catch (error) {
+      console.error("Failed to check existing Stripe refunds:", error);
+      throw new AppError("Failed to communicate with payment provider", 502, "PAYMENT_PROVIDER_ERROR");
+    }
+
+    try {
+      const refund = await stripe.refunds.create(
+        {
+          payment_intent: payment.providerPaymentId,
+          amount: payment.amount,
+        },
+        {
+          idempotencyKey: `refund-${payment.id}`,
+        }
+      );
+      return refund;
+    } catch (error: any) {
+      if (error.code === 'charge_already_refunded') {
+        const existingRefunds = await stripe.refunds.list({ payment_intent: payment.providerPaymentId });
+        const fullRefund = existingRefunds.data.find(
+          (r) => r.amount === payment.amount && (r.status === "succeeded" || r.status === "pending")
+        );
+        if (fullRefund) return fullRefund;
+      }
+      console.error("Stripe Refund creation failed:", error);
+      throw new AppError("Failed to issue refund", 502, "PAYMENT_PROVIDER_ERROR");
+    }
+  },
 };

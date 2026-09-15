@@ -121,8 +121,8 @@ model User {
   id String @id @default(uuid())
 
   name     String
-  username String?  @unique
-  email    String   @unique
+  username String? @unique
+  email    String  @unique
   password String
 
   phone        String?
@@ -133,7 +133,7 @@ model User {
   role   Role       @default(USER)
   status UserStatus @default(PENDING_VERIFICATION)
 
-  isEmailVerified Boolean @default(false)
+  isEmailVerified Boolean          @default(false)
   refreshSessions RefreshSession[]
 
   averageRating Float @default(0)
@@ -185,10 +185,10 @@ model EmailVerificationToken {
 }
 
 model AdminInvitation {
-  id        String   @id @default(uuid())
+  id        String @id @default(uuid())
   email     String
   name      String
-  tokenHash String   @unique
+  tokenHash String @unique
 
   collegeId String
   college   College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
@@ -332,8 +332,8 @@ model Payment {
   failureReason     String?
   paidAt            DateTime?
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
 }
@@ -454,11 +454,11 @@ model Report {
 }
 
 model RefreshSession {
-  id        String   @id @default(uuid())
-  tokenHash String   @unique
+  id        String @id @default(uuid())
+  tokenHash String @unique
 
   userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
   revokedAt DateTime?
