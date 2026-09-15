@@ -61,4 +61,60 @@ export const orderRepository = {
       include: { item: true },
     });
   },
+
+  updateOrderStatus: async (
+    orderId: string,
+    itemId: string,
+    newStatus: "CONFIRMED" | "CANCELLED" | "COMPLETED",
+    expectedOrderStatus: "PENDING" | "CONFIRMED",
+    expectedItemStatus?: "RESERVED",
+    newItemStatus?: "AVAILABLE" | "SOLD"
+  ) => {
+    return prisma.$transaction(async (tx) => {
+      // 1. Update Order atomically
+      const orderResult = await tx.order.updateMany({
+        where: { id: orderId, status: expectedOrderStatus },
+        data: { status: newStatus },
+      });
+
+      if (orderResult.count !== 1) {
+        throw new AppError(
+          "Order status transition failed due to invalid current state",
+          409,
+          "INVALID_ORDER_STATUS"
+        );
+      }
+
+      // 2. Update Item atomically if needed
+      if (expectedItemStatus && newItemStatus) {
+        const itemResult = await tx.item.updateMany({
+          where: { id: itemId, status: expectedItemStatus },
+          data: { status: newItemStatus },
+        });
+
+        if (itemResult.count !== 1) {
+          throw new AppError(
+            "Item status transition failed due to invalid current state",
+            409,
+            "INVALID_ITEM_STATUS"
+          );
+        }
+      }
+
+      return tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          item: true,
+          seller: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              profileImage: true,
+            },
+          },
+        },
+      });
+    });
+  },
 };

@@ -71,4 +71,47 @@ export const paymentRepository = {
       return { payment, order };
     });
   },
+
+  updatePaymentStatus: async (paymentId: string, status: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED") => {
+    return prisma.payment.update({
+      where: { id: paymentId },
+      data: { status }
+    });
+  },
+
+  refundPaymentAndCancelOrder: async (paymentId: string, orderId: string, itemId: string) => {
+    return prisma.$transaction(async (tx) => {
+      const paymentResult = await tx.payment.updateMany({
+        where: { id: paymentId, status: "SUCCESS" },
+        data: { status: "REFUNDED" },
+      });
+
+      if (paymentResult.count !== 1) {
+        throw new Error("Payment status transition failed");
+      }
+
+      const orderResult = await tx.order.updateMany({
+        where: { id: orderId, status: "CONFIRMED" },
+        data: { status: "CANCELLED" },
+      });
+
+      if (orderResult.count !== 1) {
+        throw new Error("Order status transition failed");
+      }
+
+      const itemResult = await tx.item.updateMany({
+        where: { id: itemId, status: "RESERVED" },
+        data: { status: "AVAILABLE" },
+      });
+
+      if (itemResult.count !== 1) {
+        throw new Error("Item status transition failed");
+      }
+
+      return tx.order.findUnique({
+        where: { id: orderId },
+        include: { item: true }
+      });
+    });
+  },
 };

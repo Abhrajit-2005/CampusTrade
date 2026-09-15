@@ -23,3 +23,30 @@ export const createOrder = async (
     next(error);
   }
 };
+
+export const updateOrderStatus = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id as string;
+    const status = req.body.status as "CONFIRMED" | "CANCELLED" | "COMPLETED";
+    const userId = req.user!.sub as string;
+
+    const order = await orderService.updateOrderStatus(
+      userId,
+      id,
+      status
+    );
+
+    return sendSuccess(
+      res,
+      order,
+      `Order status updated to ${status} successfully`,
+      200
+    );
+  } catch (error) {
+    next(error);
+  }
+};

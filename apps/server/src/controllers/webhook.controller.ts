@@ -31,6 +31,9 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       case "payment_intent.payment_failed":
         await webhookService.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
         break;
+      case "charge.refunded":
+        await webhookService.handleChargeRefunded(event.data.object as Stripe.Charge);
+        break;
       default:
         // Ignore unsupported event types safely
         break;
