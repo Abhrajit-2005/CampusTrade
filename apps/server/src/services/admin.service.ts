@@ -110,4 +110,71 @@ export const adminService = {
 
     return { status: newStatus };
   },
+
+  getItems: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+      categoryId?: string;
+      condition?: string;
+    }
+  ) => {
+    const { items, total } = await adminRepository.getItemsWithPagination(
+      page,
+      limit,
+      filters
+    );
+
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  getItemById: async (targetId: string, collegeId?: string) => {
+    const item = await adminRepository.getItemDetails(targetId, collegeId);
+    if (!item) {
+      throw new AppError("Item not found", 404, "NOT_FOUND");
+    }
+    return item;
+  },
+
+  updateItemStatus: async (
+    targetId: string,
+    newStatus: string,
+    adminCollegeId?: string
+  ) => {
+    const target = await adminRepository.getItemDetails(targetId, adminCollegeId);
+
+    if (!target) {
+      throw new AppError("Item not found", 404, "NOT_FOUND");
+    }
+
+    if (target.status === "REMOVED") {
+      throw new AppError("Item is already removed", 409, "CONFLICT");
+    }
+
+    if (target.status !== "AVAILABLE" && target.status !== "DRAFT") {
+      throw new AppError("Item cannot be removed from its current status", 409, "CONFLICT");
+    }
+
+    const result = await adminRepository.updateItemStatus(
+      targetId,
+      newStatus,
+      ["AVAILABLE", "DRAFT"],
+      adminCollegeId
+    );
+
+    if (result.count === 0) {
+      throw new AppError("Failed to update item status due to concurrent modification", 409, "CONFLICT");
+    }
+
+    return { status: newStatus };
+  },
 };
