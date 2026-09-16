@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserStatus, ItemStatus, ItemCondition, OrderStatus } from "@prisma/client";
+import { UserStatus, ItemStatus, ItemCondition, OrderStatus, PaymentStatus } from "@prisma/client";
 
 export const getAdminUsersSchema = z.object({
   query: z.object({
@@ -93,5 +93,31 @@ export const getAdminOrdersSchema = z.object({
 export const getAdminOrderDetailsSchema = z.object({
   params: z.object({
     id: z.string().uuid("Invalid order ID format"),
+  }),
+});
+
+export const getAdminPaymentsSchema = z.object({
+  query: z.object({
+    page: z
+      .string()
+      .regex(/^\d+$/, "Page must be a positive integer")
+      .transform(Number)
+      .optional()
+      .default(1 as any),
+    limit: z
+      .string()
+      .regex(/^\d+$/, "Limit must be a positive integer")
+      .transform(Number)
+      .optional()
+      .default(20 as any),
+    search: z.string().optional(),
+    status: z.nativeEnum(PaymentStatus).optional(),
+    provider: z.string().optional(),
+  }),
+});
+
+export const getAdminPaymentDetailsSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid payment ID format"),
   }),
 });
