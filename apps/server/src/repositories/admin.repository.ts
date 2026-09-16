@@ -127,5 +127,110 @@ export const adminRepository = {
         currency: "INR", // Based on the platform's default setup
       },
     };
-  }
+  },
+
+  getUsersWithPagination: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+    }
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.UserWhereInput = {
+      deletedAt: null,
+      ...(filters.collegeId ? { collegeId: filters.collegeId } : {}),
+      ...(filters.status ? { status: filters.status as any } : {}),
+    };
+
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: "insensitive" } },
+        { username: { contains: filters.search, mode: "insensitive" } },
+        { email: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          email: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          college: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return { users, total };
+  },
+
+  getUserDetails: async (targetId: string, collegeId?: string) => {
+    return prisma.user.findFirst({
+      where: {
+        id: targetId,
+        deletedAt: null,
+        ...(collegeId ? { collegeId } : {}),
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        college: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  },
+
+  updateUserStatus: async (
+    targetId: string,
+    newStatus: "ACTIVE" | "SUSPENDED",
+    currentStatus: "ACTIVE" | "SUSPENDED",
+    adminRole: string,
+    adminId: string,
+    adminCollegeId?: string
+  ) => {
+    return prisma.user.updateMany({
+      where: {
+        id: targetId,
+        NOT: { id: adminId },
+        status: currentStatus as any,
+        deletedAt: null,
+        ...(adminRole === "COLLEGE_ADMIN"
+          ? { role: { notIn: ["PLATFORM_ADMIN", "COLLEGE_ADMIN"] } }
+          : { role: { not: "PLATFORM_ADMIN" } }),
+        ...(adminCollegeId ? { collegeId: adminCollegeId } : {}),
+      },
+      data: {
+        status: newStatus as any,
+      },
+    });
+  },
 };

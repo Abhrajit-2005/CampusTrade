@@ -4,12 +4,13 @@ import {
   verifyAccessToken,
 } from "../utils/jwt.js";
 import { AppError } from "../utils/AppError.js";
+import { prisma } from "../prisma/client.js";
 
 export interface AuthenticatedRequest extends Request {
   user?: AccessTokenPayload;
 }
 
-export const authenticate = (
+export const authenticate = async (
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
@@ -46,6 +47,27 @@ export const authenticate = (
         "Invalid access token",
         401,
         "INVALID_ACCESS_TOKEN"
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub, deletedAt: null },
+      select: { status: true },
+    });
+
+    if (!user) {
+      throw new AppError(
+        "User not found or deleted",
+        401,
+        "INVALID_ACCESS_TOKEN"
+      );
+    }
+
+    if (user.status === "SUSPENDED") {
+      throw new AppError(
+        "Your account has been suspended",
+        403,
+        "ACCOUNT_SUSPENDED"
       );
     }
 
