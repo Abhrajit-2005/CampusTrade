@@ -1,5 +1,7 @@
 import { adminRepository } from "../repositories/admin.repository.js";
 import { collegeRepository } from "../repositories/college.repository.js";
+import { paymentRepository } from "../repositories/payment.repository.js";
+import { paymentService } from "./payment.service.js";
 import { AppError } from "../utils/AppError.js";
 
 export const adminService = {
@@ -241,5 +243,67 @@ export const adminService = {
       throw new AppError("Payment not found", 404, "NOT_FOUND");
     }
     return payment;
+  },
+
+  refundPayment: async (targetId: string, adminCollegeId?: string) => {
+    const payment = await adminRepository.getPaymentDetails(targetId, adminCollegeId);
+
+    if (!payment) {
+      throw new AppError("Payment not found", 404, "NOT_FOUND");
+    }
+
+    if (payment.status === "REFUNDED") {
+      throw new AppError("Payment is already refunded", 409, "CONFLICT");
+    }
+
+    if (payment.status !== "SUCCESS") {
+      throw new AppError(`Cannot refund payment with status ${payment.status}`, 409, "CONFLICT");
+    }
+
+    if (payment.order.status === "COMPLETED") {
+      throw new AppError("Cannot refund payment for a completed order", 409, "CONFLICT");
+    }
+
+    if (payment.order.status !== "CONFIRMED") {
+      throw new AppError(`Cannot refund payment for order with status ${payment.order.status}`, 409, "CONFLICT");
+    }
+
+    if (payment.order.item.status !== "RESERVED") {
+      throw new AppError(`Cannot refund payment for item with status ${payment.order.item.status}`, 409, "CONFLICT");
+    }
+
+    await paymentService.refundPayment({
+      id: payment.id,
+      providerPaymentId: payment.providerPaymentId,
+      amount: payment.amount,
+    });
+
+    try {
+      await paymentRepository.refundPaymentAndCancelOrder(
+        payment.id,
+        payment.order.id,
+        payment.order.item.id
+      );
+    } catch (error: any) {
+      if (error instanceof Error && error.message.includes("status transition failed")) {
+        throw new AppError(
+          "The refund was initiated at the payment provider, but the local state changed concurrently. The system will reconcile shortly.",
+          409,
+          "CONFLICT"
+        );
+      }
+      throw error;
+    }
+
+    return {
+      paymentId: payment.id,
+      orderId: payment.order.id,
+      refundStatus: "REFUNDED",
+      paymentStatus: "REFUNDED",
+      orderStatus: "CANCELLED",
+      itemStatus: "AVAILABLE",
+      amount: payment.amount,
+      currency: payment.currency,
+    };
   },
 };
