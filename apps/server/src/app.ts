@@ -16,6 +16,7 @@ import wishlistRouter from "./routes/wishlist.routes.js";
 import orderRouter from "./routes/order.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
 import webhookRouter from "./routes/webhook.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use("/api/v1/conversations", conversationRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/admin", adminRouter);
 
 
 app.use((_req, res) => {
