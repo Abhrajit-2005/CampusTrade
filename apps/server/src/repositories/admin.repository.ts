@@ -233,4 +233,161 @@ export const adminRepository = {
       },
     });
   },
+
+  getItemsWithPagination: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+      categoryId?: string;
+      condition?: string;
+    }
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ItemWhereInput = {
+      deletedAt: null,
+      ...(filters.collegeId ? { collegeId: filters.collegeId } : {}),
+      ...(filters.status ? { status: filters.status as any } : {}),
+      ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
+      ...(filters.condition ? { condition: filters.condition as any } : {}),
+    };
+
+    if (filters.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { description: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.item.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          price: true,
+          isNegotiable: true,
+          condition: true,
+          status: true,
+          pickupLocation: true,
+          views: true,
+          wishlistCount: true,
+          createdAt: true,
+          updatedAt: true,
+          seller: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              email: true,
+            },
+          },
+          college: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          images: {
+            where: { deletedAt: null },
+            select: {
+              id: true,
+              imageUrl: true,
+              isPrimary: true,
+            },
+            orderBy: { displayOrder: "asc" },
+          },
+        },
+      }),
+      prisma.item.count({ where }),
+    ]);
+
+    return { items, total };
+  },
+
+  getItemDetails: async (targetId: string, collegeId?: string) => {
+    return prisma.item.findFirst({
+      where: {
+        id: targetId,
+        deletedAt: null,
+        ...(collegeId ? { collegeId } : {}),
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        isNegotiable: true,
+        condition: true,
+        status: true,
+        pickupLocation: true,
+        views: true,
+        wishlistCount: true,
+        createdAt: true,
+        updatedAt: true,
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+          },
+        },
+        college: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        images: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            imageUrl: true,
+            isPrimary: true,
+            displayOrder: true,
+          },
+          orderBy: { displayOrder: "asc" },
+        },
+      },
+    });
+  },
+
+  updateItemStatus: async (
+    targetId: string,
+    newStatus: string,
+    currentStatuses: string[],
+    adminCollegeId?: string
+  ) => {
+    return prisma.item.updateMany({
+      where: {
+        id: targetId,
+        deletedAt: null,
+        status: { in: currentStatuses as any[] },
+        ...(adminCollegeId ? { collegeId: adminCollegeId } : {}),
+      },
+      data: {
+        status: newStatus as any,
+      },
+    });
+  },
 };
