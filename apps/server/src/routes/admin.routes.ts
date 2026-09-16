@@ -9,6 +9,8 @@ import {
   updateAdminItemStatus,
   getAdminOrders,
   getAdminOrderDetails,
+  getAdminPayments,
+  getAdminPaymentDetails,
 } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
@@ -22,6 +24,8 @@ import {
   updateAdminItemStatusSchema,
   getAdminOrdersSchema,
   getAdminOrderDetailsSchema,
+  getAdminPaymentsSchema,
+  getAdminPaymentDetailsSchema,
 } from "../validators/admin.validator.js";
 
 const router = Router();
@@ -95,6 +99,22 @@ router.get(
   authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
   validate(getAdminOrderDetailsSchema),
   getAdminOrderDetails
+);
+
+router.get(
+  "/payments",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(getAdminPaymentsSchema),
+  getAdminPayments
+);
+
+router.get(
+  "/payments/:id",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(getAdminPaymentDetailsSchema),
+  getAdminPaymentDetails
 );
 
 export default router;

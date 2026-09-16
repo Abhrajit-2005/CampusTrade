@@ -519,4 +519,179 @@ export const adminRepository = {
       },
     });
   },
+
+  getPaymentsWithPagination: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+      provider?: string;
+    }
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.PaymentWhereInput = {
+      order: {
+        deletedAt: null,
+        item: {
+          deletedAt: null,
+          ...(filters.collegeId ? { collegeId: filters.collegeId } : {}),
+        },
+      },
+      ...(filters.status ? { status: filters.status as any } : {}),
+      ...(filters.provider ? { provider: filters.provider } : {}),
+    };
+
+    if (filters.search) {
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(filters.search);
+      
+      if (isUuid) {
+        where.OR = [
+          { id: filters.search },
+          { orderId: filters.search },
+          { providerPaymentId: { contains: filters.search, mode: "insensitive" } },
+        ];
+      } else {
+        where.OR = [
+          { providerPaymentId: { contains: filters.search, mode: "insensitive" } },
+          { order: { itemTitle: { contains: filters.search, mode: "insensitive" } } },
+          { order: { buyer: { name: { contains: filters.search, mode: "insensitive" } } } },
+          { order: { buyer: { username: { contains: filters.search, mode: "insensitive" } } } },
+          { order: { buyer: { email: { contains: filters.search, mode: "insensitive" } } } },
+          { order: { seller: { name: { contains: filters.search, mode: "insensitive" } } } },
+          { order: { seller: { username: { contains: filters.search, mode: "insensitive" } } } },
+          { order: { seller: { email: { contains: filters.search, mode: "insensitive" } } } },
+        ];
+      }
+    }
+
+    const selectQuery = {
+      id: true,
+      orderId: true,
+      provider: true,
+      providerPaymentId: true,
+      amount: true,
+      currency: true,
+      status: true,
+      failureReason: true,
+      paidAt: true,
+      createdAt: true,
+      updatedAt: true,
+      order: {
+        select: {
+          id: true,
+          itemTitle: true,
+          status: true,
+          item: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              college: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          buyer: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              email: true,
+            },
+          },
+          seller: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    };
+
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: selectQuery,
+      }),
+      prisma.payment.count({ where }),
+    ]);
+
+    return { payments, total };
+  },
+
+  getPaymentDetails: async (targetId: string, collegeId?: string) => {
+    return prisma.payment.findFirst({
+      where: {
+        id: targetId,
+        order: {
+          deletedAt: null,
+          item: {
+            deletedAt: null,
+            ...(collegeId ? { collegeId } : {}),
+          },
+        },
+      },
+      select: {
+        id: true,
+        orderId: true,
+        provider: true,
+        providerPaymentId: true,
+        amount: true,
+        currency: true,
+        status: true,
+        failureReason: true,
+        paidAt: true,
+        createdAt: true,
+        updatedAt: true,
+        order: {
+          select: {
+            id: true,
+            itemTitle: true,
+            status: true,
+            item: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+                college: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            buyer: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                email: true,
+              },
+            },
+            seller: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  },
 };

@@ -209,4 +209,37 @@ export const adminService = {
     }
     return order;
   },
+
+  getPayments: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+      provider?: string;
+    }
+  ) => {
+    const { payments, total } = await adminRepository.getPaymentsWithPagination(
+      page,
+      limit,
+      filters
+    );
+
+    return {
+      payments,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  getPaymentById: async (targetId: string, collegeId?: string) => {
+    const payment = await adminRepository.getPaymentDetails(targetId, collegeId);
+    if (!payment) {
+      throw new AppError("Payment not found", 404, "NOT_FOUND");
+    }
+    return payment;
+  },
 };
