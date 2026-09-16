@@ -121,3 +121,9 @@ export const getAdminPaymentDetailsSchema = z.object({
     id: z.string().uuid("Invalid payment ID format"),
   }),
 });
+
+export const refundAdminPaymentSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid payment ID format"),
+  }),
+});

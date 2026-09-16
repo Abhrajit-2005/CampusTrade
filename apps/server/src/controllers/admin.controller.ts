@@ -361,3 +361,32 @@ export const getAdminPaymentDetails = async (
     next(error);
   }
 };
+
+export const refundAdminPayment = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { id } = req.params;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const data = await adminService.refundPayment(id as string, targetCollegeId);
+
+    return sendSuccess(res, data, "Payment refunded successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};

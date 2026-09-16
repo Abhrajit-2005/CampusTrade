@@ -11,6 +11,7 @@ import {
   getAdminOrderDetails,
   getAdminPayments,
   getAdminPaymentDetails,
+  refundAdminPayment,
 } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
@@ -26,6 +27,7 @@ import {
   getAdminOrderDetailsSchema,
   getAdminPaymentsSchema,
   getAdminPaymentDetailsSchema,
+  refundAdminPaymentSchema,
 } from "../validators/admin.validator.js";
 
 const router = Router();
@@ -115,6 +117,14 @@ router.get(
   authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
   validate(getAdminPaymentDetailsSchema),
   getAdminPaymentDetails
+);
+
+router.post(
+  "/payments/:id/refund",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(refundAdminPaymentSchema),
+  refundAdminPayment
 );
 
 export default router;
