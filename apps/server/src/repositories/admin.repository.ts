@@ -390,4 +390,133 @@ export const adminRepository = {
       },
     });
   },
+
+  getOrdersWithPagination: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+    }
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.OrderWhereInput = {
+      deletedAt: null,
+      ...(filters.collegeId ? { item: { collegeId: filters.collegeId } } : {}),
+      ...(filters.status ? { status: filters.status as any } : {}),
+    };
+
+    if (filters.search) {
+      where.OR = [
+        { id: { contains: filters.search, mode: "insensitive" } },
+        { itemTitle: { contains: filters.search, mode: "insensitive" } },
+        { buyer: { name: { contains: filters.search, mode: "insensitive" } } },
+        { buyer: { username: { contains: filters.search, mode: "insensitive" } } },
+        { buyer: { email: { contains: filters.search, mode: "insensitive" } } },
+        { seller: { name: { contains: filters.search, mode: "insensitive" } } },
+        { seller: { username: { contains: filters.search, mode: "insensitive" } } },
+        { seller: { email: { contains: filters.search, mode: "insensitive" } } },
+      ];
+    }
+
+    const selectQuery = {
+      id: true,
+      price: true,
+      itemTitle: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      item: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          college: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      buyer: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          email: true,
+        },
+      },
+      seller: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          email: true,
+        },
+      },
+    };
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        select: selectQuery,
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    return { orders, total };
+  },
+
+  getOrderDetails: async (targetId: string, collegeId?: string) => {
+    return prisma.order.findFirst({
+      where: {
+        id: targetId,
+        deletedAt: null,
+        ...(collegeId ? { item: { collegeId } } : {}),
+      },
+      select: {
+        id: true,
+        price: true,
+        itemTitle: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        item: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            college: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        buyer: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+          },
+        },
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+  },
 };
