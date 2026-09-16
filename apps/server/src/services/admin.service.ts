@@ -177,4 +177,36 @@ export const adminService = {
 
     return { status: newStatus };
   },
+
+  getOrders: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+    }
+  ) => {
+    const { orders, total } = await adminRepository.getOrdersWithPagination(
+      page,
+      limit,
+      filters
+    );
+
+    return {
+      orders,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  getOrderById: async (targetId: string, collegeId?: string) => {
+    const order = await adminRepository.getOrderDetails(targetId, collegeId);
+    if (!order) {
+      throw new AppError("Order not found", 404, "NOT_FOUND");
+    }
+    return order;
+  },
 };

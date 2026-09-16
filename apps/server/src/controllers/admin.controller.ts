@@ -234,3 +234,66 @@ export const updateAdminItemStatus = async (
     next(error);
   }
 };
+
+export const getAdminOrders = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { page, limit, search, status } = req.query as any;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const filters: any = {};
+    if (targetCollegeId) filters.collegeId = targetCollegeId;
+    if (search) filters.search = search;
+    if (status) filters.status = status;
+
+    const data = await adminService.getOrders(page, limit, filters);
+
+    return sendSuccess(res, data, "Admin orders fetched successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminOrderDetails = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { id } = req.params;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const data = await adminService.getOrderById(id as string, targetCollegeId);
+
+    return sendSuccess(res, data, "Admin order details fetched successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};

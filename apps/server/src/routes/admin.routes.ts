@@ -7,6 +7,8 @@ import {
   getAdminItems,
   getAdminItemDetails,
   updateAdminItemStatus,
+  getAdminOrders,
+  getAdminOrderDetails,
 } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
@@ -18,6 +20,8 @@ import {
   getAdminItemsSchema,
   getAdminItemDetailsSchema,
   updateAdminItemStatusSchema,
+  getAdminOrdersSchema,
+  getAdminOrderDetailsSchema,
 } from "../validators/admin.validator.js";
 
 const router = Router();
@@ -75,6 +79,22 @@ router.patch(
   authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
   validate(updateAdminItemStatusSchema),
   updateAdminItemStatus
+);
+
+router.get(
+  "/orders",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(getAdminOrdersSchema),
+  getAdminOrders
+);
+
+router.get(
+  "/orders/:id",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(getAdminOrderDetailsSchema),
+  getAdminOrderDetails
 );
 
 export default router;
