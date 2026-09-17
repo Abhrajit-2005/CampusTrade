@@ -6,7 +6,6 @@ CampusTrade is a full-stack marketplace platform designed around a simple idea: 
 
 Instead of treating a marketplace as a completely open network, CampusTrade uses verified college identities, college-scoped listings, role-based administration, real-time communication, transactional orders, Stripe payments, and moderation workflows to create a more controlled trading environment.
 
-> **Current status:** Phases 0–9 are completed. Phase 10 (Notifications) is planned and has not started.
 
 ---
 
