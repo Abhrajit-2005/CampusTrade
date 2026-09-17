@@ -306,4 +306,128 @@ export const adminService = {
       currency: payment.currency,
     };
   },
+
+  getReports: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+      reason?: string;
+    }
+  ) => {
+    const { reports, total } = await adminRepository.getReportsWithPagination(
+      page,
+      limit,
+      filters
+    );
+
+    return {
+      reports,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  getReportById: async (targetId: string, collegeId?: string) => {
+    const report = await adminRepository.getReportDetails(targetId, collegeId);
+    if (!report) {
+      throw new AppError("Report not found", 404, "NOT_FOUND");
+    }
+    return report;
+  },
+
+  updateReportStatus: async (
+    targetId: string,
+    newStatus: "UNDER_REVIEW" | "RESOLVED" | "REJECTED",
+    adminCollegeId?: string
+  ) => {
+    const report = await adminRepository.getReportDetails(targetId, adminCollegeId);
+
+    if (!report) {
+      throw new AppError("Report not found", 404, "NOT_FOUND");
+    }
+
+    if (report.status === newStatus) {
+      throw new AppError(`Report is already ${newStatus}`, 409, "CONFLICT");
+    }
+
+    if (report.status === "RESOLVED" || report.status === "REJECTED") {
+      throw new AppError(`Cannot modify terminal report status ${report.status}`, 409, "CONFLICT");
+    }
+
+    // Explicitly reject UNDER_REVIEW -> OPEN
+    if (report.status === "UNDER_REVIEW" && (newStatus as any) === "OPEN") {
+      throw new AppError("Cannot revert report to OPEN", 409, "CONFLICT");
+    }
+
+    const currentStatus = report.status as "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "REJECTED";
+
+    const result = await adminRepository.updateReportStatus(
+      targetId,
+      newStatus,
+      currentStatus,
+      adminCollegeId
+    );
+
+    if (result.count === 0) {
+      throw new AppError("Failed to update report status due to concurrent modification", 409, "CONFLICT");
+    }
+
+    return {
+      id: report.id,
+      status: newStatus,
+      updatedAt: new Date(),
+    };
+  },
+
+  removeReportedItem: async (reportId: string, adminCollegeId?: string) => {
+    const report = await adminRepository.getReportDetails(reportId, adminCollegeId);
+
+    if (!report) {
+      throw new AppError("Report not found", 404, "NOT_FOUND");
+    }
+
+    const itemResult = await adminService.updateItemStatus(
+      report.item.id,
+      "REMOVED",
+      adminCollegeId
+    );
+
+    return {
+      reportId: report.id,
+      itemId: report.item.id,
+      itemStatus: itemResult.status,
+    };
+  },
+
+  suspendReportedSeller: async (
+    reportId: string,
+    adminRole: string,
+    adminId: string,
+    adminCollegeId?: string
+  ) => {
+    const report = await adminRepository.getReportDetails(reportId, adminCollegeId);
+
+    if (!report) {
+      throw new AppError("Report not found", 404, "NOT_FOUND");
+    }
+
+    const userResult = await adminService.updateUserStatus(
+      report.item.seller.id,
+      "SUSPENDED",
+      adminRole,
+      adminId,
+      adminCollegeId
+    );
+
+    return {
+      reportId: report.id,
+      userId: report.item.seller.id,
+      userStatus: userResult.status,
+    };
+  },
 };

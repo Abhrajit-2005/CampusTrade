@@ -390,3 +390,160 @@ export const refundAdminPayment = async (
     next(error);
   }
 };
+
+export const getAdminReports = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { page, limit, search, status, reason } = req.query as any;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const filters: any = {};
+    if (targetCollegeId) filters.collegeId = targetCollegeId;
+    if (search) filters.search = search;
+    if (status) filters.status = status;
+    if (reason) filters.reason = reason;
+
+    const data = await adminService.getReports(page, limit, filters);
+
+    return sendSuccess(res, data, "Admin reports fetched successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminReportDetails = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { id } = req.params;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const data = await adminService.getReportById(id as string, targetCollegeId);
+
+    return sendSuccess(res, data, "Admin report details fetched successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAdminReportStatus = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const data = await adminService.updateReportStatus(id as string, status, targetCollegeId);
+
+    return sendSuccess(res, data, "Admin report status updated successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const removeAdminReportedItem = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { id } = req.params;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const data = await adminService.removeReportedItem(id as string, targetCollegeId);
+
+    return sendSuccess(res, data, "Reported item removed successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const suspendAdminReportedSeller = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { role, sub } = req.user!;
+    const { id } = req.params;
+
+    let targetCollegeId: string | undefined = undefined;
+
+    if (role === "COLLEGE_ADMIN") {
+      const user = await userRepository.findById(sub);
+      if (!user || !user.collegeId) {
+        throw new AppError("Admin college association missing", 403, "FORBIDDEN");
+      }
+      targetCollegeId = user.collegeId;
+    } else if (role !== "PLATFORM_ADMIN") {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
+
+    const data = await adminService.suspendReportedSeller(
+      id as string,
+      role,
+      sub,
+      targetCollegeId
+    );
+
+    return sendSuccess(res, data, "Reported seller suspended successfully", 200);
+  } catch (error) {
+    next(error);
+  }
+};

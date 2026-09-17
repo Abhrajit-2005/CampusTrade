@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserStatus, ItemStatus, ItemCondition, OrderStatus, PaymentStatus } from "@prisma/client";
+import { UserStatus, ItemStatus, ItemCondition, OrderStatus, PaymentStatus, ReportStatus, ReportReason } from "@prisma/client";
 
 export const getAdminUsersSchema = z.object({
   query: z.object({
@@ -125,5 +125,54 @@ export const getAdminPaymentDetailsSchema = z.object({
 export const refundAdminPaymentSchema = z.object({
   params: z.object({
     id: z.string().uuid("Invalid payment ID format"),
+  }),
+});
+
+export const getAdminReportsSchema = z.object({
+  query: z.object({
+    page: z
+      .string()
+      .regex(/^\d+$/, "Page must be a positive integer")
+      .transform(Number)
+      .optional()
+      .default(1 as any),
+    limit: z
+      .string()
+      .regex(/^\d+$/, "Limit must be a positive integer")
+      .transform(Number)
+      .optional()
+      .default(20 as any),
+    search: z.string().optional(),
+    status: z.nativeEnum(ReportStatus).optional(),
+    reason: z.nativeEnum(ReportReason).optional(),
+  }),
+});
+
+export const getAdminReportDetailsSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid report ID format"),
+  }),
+});
+
+const updateStatuses = ["UNDER_REVIEW", "RESOLVED", "REJECTED"] as const;
+
+export const updateAdminReportStatusSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid report ID format"),
+  }),
+  body: z.object({
+    status: z.enum(["UNDER_REVIEW", "RESOLVED", "REJECTED"]),
+  }),
+});
+
+export const removeReportedItemSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid report ID format"),
+  }),
+});
+
+export const suspendReportedSellerSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid report ID format"),
   }),
 });
