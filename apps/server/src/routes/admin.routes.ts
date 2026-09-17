@@ -12,6 +12,11 @@ import {
   getAdminPayments,
   getAdminPaymentDetails,
   refundAdminPayment,
+  getAdminReports,
+  getAdminReportDetails,
+  updateAdminReportStatus,
+  removeAdminReportedItem,
+  suspendAdminReportedSeller,
 } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
@@ -28,6 +33,11 @@ import {
   getAdminPaymentsSchema,
   getAdminPaymentDetailsSchema,
   refundAdminPaymentSchema,
+  getAdminReportsSchema,
+  getAdminReportDetailsSchema,
+  updateAdminReportStatusSchema,
+  removeReportedItemSchema,
+  suspendReportedSellerSchema,
 } from "../validators/admin.validator.js";
 
 const router = Router();
@@ -125,6 +135,46 @@ router.post(
   authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
   validate(refundAdminPaymentSchema),
   refundAdminPayment
+);
+
+router.get(
+  "/reports",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(getAdminReportsSchema),
+  getAdminReports
+);
+
+router.get(
+  "/reports/:id",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(getAdminReportDetailsSchema),
+  getAdminReportDetails
+);
+
+router.patch(
+  "/reports/:id/status",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(updateAdminReportStatusSchema),
+  updateAdminReportStatus
+);
+
+router.post(
+  "/reports/:id/remove-item",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(removeReportedItemSchema),
+  removeAdminReportedItem
+);
+
+router.post(
+  "/reports/:id/suspend-seller",
+  authenticate,
+  authorizeRoles("PLATFORM_ADMIN", "COLLEGE_ADMIN"),
+  validate(suspendReportedSellerSchema),
+  suspendAdminReportedSeller
 );
 
 export default router;

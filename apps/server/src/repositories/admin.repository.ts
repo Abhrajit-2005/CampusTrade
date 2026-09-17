@@ -159,7 +159,7 @@ export const adminRepository = {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
         select: {
           id: true,
           username: true,
@@ -267,7 +267,7 @@ export const adminRepository = {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
         select: {
           id: true,
           title: true,
@@ -464,7 +464,7 @@ export const adminRepository = {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
         select: selectQuery,
       }),
       prisma.order.count({ where }),
@@ -622,7 +622,7 @@ export const adminRepository = {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
         select: selectQuery,
       }),
       prisma.payment.count({ where }),
@@ -692,6 +692,169 @@ export const adminRepository = {
           },
         },
       },
+    });
+  },
+
+  getReportsWithPagination: async (
+    page: number,
+    limit: number,
+    filters: {
+      collegeId?: string;
+      search?: string;
+      status?: string;
+      reason?: string;
+    }
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ReportWhereInput = {
+      ...(filters.collegeId ? { item: { collegeId: filters.collegeId } } : {}),
+      ...(filters.status ? { status: filters.status as any } : {}),
+      ...(filters.reason ? { reason: filters.reason as any } : {}),
+    };
+
+    if (filters.search) {
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(filters.search);
+      
+      if (isUuid) {
+        where.OR = [
+          { id: filters.search },
+          { reporterId: filters.search },
+          { itemId: filters.search },
+        ];
+      } else {
+        where.OR = [
+          { description: { contains: filters.search, mode: "insensitive" } },
+          { reporter: { name: { contains: filters.search, mode: "insensitive" } } },
+          { reporter: { username: { contains: filters.search, mode: "insensitive" } } },
+          { reporter: { email: { contains: filters.search, mode: "insensitive" } } },
+          { item: { title: { contains: filters.search, mode: "insensitive" } } },
+          { item: { seller: { name: { contains: filters.search, mode: "insensitive" } } } },
+          { item: { seller: { username: { contains: filters.search, mode: "insensitive" } } } },
+          { item: { seller: { email: { contains: filters.search, mode: "insensitive" } } } },
+        ];
+      }
+    }
+
+    const selectQuery = {
+      id: true,
+      reason: true,
+      description: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      reporter: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          email: true,
+          role: true,
+          status: true,
+        },
+      },
+      item: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          college: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          seller: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              email: true,
+              role: true,
+              status: true,
+            },
+          },
+        },
+      },
+    };
+
+    const [reports, total] = await Promise.all([
+      prisma.report.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+        select: selectQuery,
+      }),
+      prisma.report.count({ where }),
+    ]);
+
+    return { reports, total };
+  },
+
+  getReportDetails: async (targetId: string, collegeId?: string) => {
+    return prisma.report.findFirst({
+      where: {
+        id: targetId,
+        ...(collegeId ? { item: { collegeId } } : {}),
+      },
+      select: {
+        id: true,
+        reason: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        reporter: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            role: true,
+            status: true,
+          },
+        },
+        item: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            college: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            seller: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                email: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+
+  updateReportStatus: async (
+    targetId: string,
+    newStatus: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "REJECTED",
+    currentStatus: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "REJECTED",
+    adminCollegeId?: string
+  ) => {
+    return prisma.report.updateMany({
+      where: {
+        id: targetId,
+        status: currentStatus,
+        ...(adminCollegeId ? { item: { collegeId: adminCollegeId } } : {}),
+      },
+      data: { status: newStatus },
     });
   },
 };
